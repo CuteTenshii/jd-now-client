@@ -3,7 +3,12 @@ interface HelloResponse {
   dancercard: {
     publicID: string;
     session: string;
+    // Player name
     pName: string;
+    /**
+     * ID of the avatar
+     * @see https://github.com/CuteTenshii/jd-now-client/wiki/Assets#avatars
+     */
     avatar: number;
     totalScore: number;
     largestDanceRoom: number;
@@ -15,8 +20,11 @@ interface HelloResponse {
       score: number;
     }[];
     nbDistinctMapsPlayed: number;
-    platform: 'android' | 'ios';
-    // Two-letter country code
+    platform: Platform;
+    /**
+     * Two-letter country code
+     * @see https://github.com/CuteTenshii/jd-now-client/wiki/Assets#countries-flags
+     */
     country: string;
     globalLevel: number;
     xpInfo: {
@@ -94,6 +102,7 @@ interface HelloResponse {
     unlockedAppIcons: number[];
     teamPlayerId: string;
     achievementId: string;
+    // Banner ID
     banner: string;
     alias: string;
     activePurchaseProductId: string;
@@ -145,4 +154,120 @@ interface HelloResponse {
   ABTestingEnabled: boolean;
   songsPrice: number;
   countryFilter: string[];
+}
+
+type Platform = 'android' | 'ios' | 'web';
+
+enum DifficultyLevel {
+  Easy = 1,
+  Medium = 2,
+  Hard = 3,
+  Extreme = 4,
+}
+
+interface PublishedSong {
+  _id: string;
+  id: string;
+  artist: string;
+  name: string;
+  coaches: number;
+  status: 'QC_VERIFIED';
+  credits: string[];
+  avatars: number[];
+  // Duration in milliseconds
+  duration: number;
+  version: number;
+  /**
+   * Difficulty level (1-4).
+   * @see DifficultyLevel
+   */
+  difficulty: DifficultyLevel;
+  // The Just Dance game this song was introduced in
+  jdversion: number;
+  isSongPackSong: boolean;
+  isLGESong: boolean;
+  /**
+   * Base URL for the song assets.
+   * @example https://jdnow-api-contentapistoragest.justdancenow.com/songs/24K_1600079320167
+   */
+  base: `https://jdnow-api-contentapistoragest.justdancenow.com/songs/${string}_${number}`;
+  /**
+   * Base URL for the app avatars assets.
+   * @example https://jdnow-api-contentapistoragest.justdancenow.com/songs/24K_1600079320167/assets/app/avatars
+   */
+  app_avatars: `https://jdnow-api-contentapistoragest.justdancenow.com/songs/${string}_${number}/assets/app/avatars`;
+  /**
+   * Direct URL to the song's background image.
+   * @example https://jdnow-api-contentapistoragest.justdancenow.com/map_bkg/24K_map_bkg.jpg
+   */
+  bkg_image: `https://jdnow-api-contentapistoragest.justdancenow.com/map_bkg/${string}_map_bkg.jpg`;
+}
+
+interface SongDetail {
+  MapName: string;
+  // The Just Dance game this song was introduced in
+  JDVersion: number;
+  OriginalJDVersion: number;
+  Artist: string;
+  Title: string;
+  Credits: string;
+  NumCoach: number;
+  CountInProgression: boolean;
+  DancerName: 'Unknown Dancer' | string;
+  LocaleId: number;
+  MojoValue: number;
+  Mode: number;
+  Status: number;
+  LyricsType: number;
+  BackgroundType: number;
+  Difficulty: DifficultyLevel;
+  // Colors in the format "0xRRGGBBOO"
+  DefaultColors: {
+    lyrics: string;
+    theme: string;
+    [key: string]: string;
+  };
+  // Color in the format "#RRGGBB"
+  lyricsColor: string;
+  videoOffset: number;
+  beats: number[];
+  lyrics: Lyric[];
+  pictos: Picto[];
+  AudioPreview: {
+    coverflow: {
+      startbeat: number;
+    };
+    prelobby: {
+      startbeat: number;
+    };
+  }
+  AudioPreviewFadeTime: number;
+}
+
+/**
+ * If you already played JD you've probably seen that lyrics appear like a karaoke.
+ * Each line is split into multiple parts, each with its own timing.
+ * @see https://github.com/CuteTenshii/jd-now-client/wiki/Lyrics
+ */
+interface Lyric {
+  time: number;
+  duration: number;
+  text: string;
+  // Values observed are only 0 and 1, so this should be a boolean. However, Ubisoft uses numbers for whatever reason.
+  isLineEnding: number;
+}
+
+interface Picto {
+  time: number;
+  duration: number;
+  /**
+   * File name of the picto asset
+   */
+  name: string;
+}
+
+interface SongMove {
+  name: string;
+  time: number;
+  duration: number;
 }

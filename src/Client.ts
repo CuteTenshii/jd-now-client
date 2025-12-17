@@ -2,7 +2,8 @@ import Socket from './Socket';
 import HTTPClient from './HTTPClient';
 
 export default class Client {
-  private baseUrl: string = 'https://release-jdns-880.justdancenow.com';
+  private gameVersion: number = 890;
+  private baseUrl: string = `https://release-jdns-${this.gameVersion}.justdancenow.com`;
   private http: HTTPClient = new HTTPClient(this.baseUrl);
 
   async getServer(roomId: number) {
@@ -72,12 +73,44 @@ export default class Client {
   }
 
   /**
-   * Find an available room.
+   * Find an available room based on the client's IP address.
    * @returns The ID of the found room.
    */
   async findRoom() {
     const res = await this.http.get<{ room: number }>('/findRoom');
     return res.room;
+  }
+
+  /**
+   * Get the list of published songs.
+   *
+   * **Note that this endpoint returns a large amount of data (700kB+).**
+   * @returns An array of published songs.
+   */
+  async publishedSongs(): Promise<PublishedSong[]> {
+    const res = await fetch('https://ire-prod-api.justdancenow.com/v1/songs/published');
+    return await res.json();
+  }
+
+  /**
+   * Get song data from its base URL.
+   * @param {string} base - The base URL of the song. See `PublishedSong.base`.
+   * @param {string} id - The song ID. See `PublishedSong.id`.
+   * @returns The song data as a JSON object.
+   */
+  async getSong(base: string, id: string): Promise<SongDetail> {
+    const res = await fetch(`${base}/${id}.json`);
+    // For whatever reason the API returns JSONP???? Like why?? so we need to strip the padding
+    const text = await res.text();
+    const jsonpData = text.replace(/^[a-zA-Z0-9]+\((.*)\);?$/, '$1');
+    return JSON.parse(jsonpData);
+  }
+
+  async getSongMoves(base: string, id: string, index: number = 0): Promise<SongMove[]> {
+    const res = await fetch(`${base}/data/moves/${id}_moves${index}.json`);
+    const text = await res.text();
+    const jsonpData = text.replace(/^[a-zA-Z0-9]+\((.*)\);?$/, '$1');
+    return JSON.parse(jsonpData);
   }
 
 }
