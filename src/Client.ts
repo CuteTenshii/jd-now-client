@@ -5,11 +5,12 @@ export default class Client {
   private gameVersion: number = 890;
   private baseUrl: string = `https://release-jdns-${this.gameVersion}.justdancenow.com`;
   private http: HTTPClient = new HTTPClient(this.baseUrl);
+  private authToken: string = '';
 
   async getServer(roomId: number) {
     const res = await this.http.get<{
-        drs: string;
-        port: number;
+      drs: string;
+      port: number;
     }>(`/checkRoomController?roomID=${roomId}`);
 
     return new Socket(res.drs, res.port);
@@ -21,8 +22,8 @@ export default class Client {
    */
   async getGeolocation() {
     const res = await this.http.get<{
-        country: string;
-        region: string;
+      country: string;
+      region: string;
     }>('/getGeolocation');
 
     return {
@@ -69,7 +70,9 @@ export default class Client {
       ubiConnectId: ubisoftConnectId || '',
     });
     // This endpoint took me too long to type oh my god
-    return this.http.post<HelloResponse>('/hello', body);
+    const res = await this.http.post<HelloResponse>('/hello', body);
+    this.authToken = res.authToken;
+    return res;
   }
 
   /**
@@ -106,11 +109,70 @@ export default class Client {
     return JSON.parse(jsonpData);
   }
 
+  /**
+   * Get the song moves from its base URL.
+   * @param base - The base URL of the song. See `PublishedSong.base`.
+   * @param id - The song ID. See `PublishedSong.id`.
+   * @param index - The index of the moves file to retrieve. Defaults to 0.
+   * @returns An array of song moves.
+   */
   async getSongMoves(base: string, id: string, index: number = 0): Promise<SongMove[]> {
     const res = await fetch(`${base}/data/moves/${id}_moves${index}.json`);
     const text = await res.text();
     const jsonpData = text.replace(/^[a-zA-Z0-9]+\((.*)\);?$/, '$1');
     return JSON.parse(jsonpData);
+  }
+
+  /**
+   * Update the dancer card information.
+   * @param playerName - The player's name.
+   * @param avatarId - The avatar ID. See https://github.com/CuteTenshii/jd-now-client/wiki/Assets#avatars
+   * @param country - The player's country. Can be a [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country code.
+   * Yes "can be" because no fucking check is done
+   * @param globalLevel - The player's global level. In reality this is not modifiable, but the API allows it.
+   * @param playerId - The player's ID. Probably useless since the auth token already identifies the user.
+   * @returns An object of the updated dancer card.
+   */
+  updateDancerCard(playerName: string, avatarId: number, country: string, globalLevel: number, playerId: string) {
+    if (!this.authToken) {
+      throw new Error('Not authenticated. Please call hello() first.');
+    }
+
+    const body = JSON.stringify({
+      pName: playerName,
+      avatar: String(avatarId),
+      country: country,
+      globalLevel: String(globalLevel),
+      _id: playerId,
+    });
+
+    return this.http.post<{
+      updated: {
+        pName: string,
+        avatar: number,
+        country: string,
+      },
+      passToDRS: {
+        func: 'updateDancercard',
+        player: {
+          name: string,
+          avatar: string,
+          country: string,
+          globalLevel: string,
+        },
+      }[];
+    }>('/updateDancerCard', body, {
+      'Content-Type': 'application/json',
+      'X-Auth-Token': this.authToken,
+    });
+  }
+
+  async renewToken(userToken: string, userId: string) {
+    const body = new URLSearchParams({ _id: userId });
+    const res = await this.http.post<{ token: string }>('/renewToken', body, {
+      'X-Auth-Token': userToken,
+    });
+    return res.token;
   }
 
 }

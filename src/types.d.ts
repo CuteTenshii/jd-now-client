@@ -18,6 +18,14 @@ interface HelloResponse {
     highscores: {
       song: string;
       score: number;
+      achievements?: {
+        superstar?: {
+          moveNr: number;
+        };
+        megastar?: {
+          moveNr: number;
+        }
+      }
     }[];
     nbDistinctMapsPlayed: number;
     platform: Platform;
@@ -82,7 +90,7 @@ interface HelloResponse {
     googleId: string;
     lgDeviceId: string|null;
     sessionsNb: number;
-    monetizationStatus: 'Free';
+    monetizationStatus: 'Free' | 'Vip';
     population: `Population${number}`;
     // Date formatted as ISO 8601
     lastLogin: string;
@@ -91,6 +99,10 @@ interface HelloResponse {
     persoDiscount: number;
     processData: boolean;
     currentDataProtectionPolicy: string;
+    renewalData?: {
+      status: 'DID_CHANGE_RENEWAL_STATUS';
+      last_status_update_date: string;
+    };
     isPlayerVip: boolean;
     averageScore: number;
     favoritesDuration: number;

@@ -7,3 +7,5 @@ The client spoofed here is the iOS app, which allows you to connect to the game 
 ## Contributing
 
 Contributions are welcome! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) file for more details on how to get started.
+
+I also recommend you to view [the wiki](https://github.com/CuteTenshii/jd-now-client/wiki), I document there some things that can help you to understand how their socket communication works.

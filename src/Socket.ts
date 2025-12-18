@@ -76,10 +76,23 @@ export default class Socket {
     this.write(Buffer.from(jsonString, 'ascii'));
   }
 
+  /**
+   * Join a room with the specified room ID.
+   * @param roomId - The room ID. This can be created by going to the https://justdancenow.com/ website.
+   * @todo Doesn't work
+   */
   joinRoom(roomId: number) {
     this.writeJSON({
       func: 'joinRoom',
-      roomId: roomId,
+      content: {
+        roomNumber: roomId,
+        masterCard: roomId,
+        isDeviceAsController: true,
+        deviceType: 'ios',
+        deviceName: 'iPhone12,1',
+        appVersion: '8.9.0',
+        platform: 'ios',
+      },
     });
   }
 

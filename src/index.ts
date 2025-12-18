@@ -19,6 +19,9 @@ const client = new Client();
   server.on('close', () => {
     console.log('Connection closed.');
   });
+  server.on('end', () => {
+    console.log('Remote FIN received');
+  });
   server.on('data', (args) => {
     if (!Buffer.isBuffer(args)) return;
     console.log('Data received:', args.toString('ascii'));
