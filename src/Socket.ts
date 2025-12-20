@@ -59,12 +59,25 @@ export default class Socket {
    * @param data - The data to send as a Buffer.
    */
   write(data: Buffer) {
-    const lenHex = data.length.toString(16).padStart(4, '0'); // "000f"
-    const lengthBuffer = Buffer.from(lenHex, 'ascii'); // 4 bytes: 30 30 30 66
-    const payload = Buffer.concat([lengthBuffer, data]);
+    const header = Buffer.from(this.getMessageHeader(data.toString('ascii')));
+    const payload = Buffer.concat([header, data]);
     console.log('Wrote (ascii):', payload.toString('ascii'));
 
     this.client.write(payload);
+  }
+
+  private getMessageHeader(payload: string): string {
+    let t = payload.length | (0 << 17);
+
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyz';
+    let n = '';
+
+    do {
+      n = chars[t % 36] + n;
+      t = Math.floor(t / 36);
+    } while (t > 0);
+
+    return n.padStart(4, '0');
   }
 
   /**
@@ -86,7 +99,7 @@ export default class Socket {
       func: 'joinRoom',
       content: {
         roomNumber: roomId,
-        masterCard: roomId,
+        masterCode: roomId,
         isDeviceAsController: true,
         deviceType: 'ios',
         deviceName: 'iPhone12,1',
